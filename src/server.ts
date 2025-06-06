@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { z } from 'zod';
 import { VideoService } from './services/video';
 import { TranscriptService } from './services/transcript';
 import { PlaylistService } from './services/playlist';
@@ -10,7 +11,11 @@ export async function startMcpServer() {
     const server = new McpServer({
         name: 'YouTube MCP Server',
         version: '1.0.0',
-        description: 'MCP Server for interacting with YouTube content and services',
+    }, {
+        capabilities: {
+            tools: {},
+        },
+        instructions: 'MCP Server for interacting with YouTube content and services',
     });
 
     // Create service instances - they won't initialize APIs until methods are called
@@ -19,29 +24,15 @@ export async function startMcpServer() {
     const playlistService = new PlaylistService();
     const channelService = new ChannelService();
 
+
+    
     // Register video tools
-    server.tool('videos_getVideo', {
-        description: 'Get detailed information about a YouTube video',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                videoId: {
-                    type: 'string',
-                    description: 'The YouTube video ID',
-                },
-                parts: {
-                    type: 'array',
-                    description: 'Parts of the video to retrieve',
-                    items: {
-                        type: 'string',
-                    },
-                },
-            },
-            required: ['videoId'],
-        },
+    server.tool('videos_getVideo', 'Get detailed information about a YouTube video', {
+        videoId: z.string().describe('The YouTube video ID'),
+        parts: z.array(z.string()).optional().describe('Parts of the video to retrieve'),
     }, async (params) => {
         try {
-            const result = await videoService.getVideo(params);
+            const result = await videoService.getVideo(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -59,25 +50,12 @@ export async function startMcpServer() {
         }
     });
 
-    server.tool('videos_searchVideos', {
-        description: 'Search for videos on YouTube',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                query: {
-                    type: 'string',
-                    description: 'Search query',
-                },
-                maxResults: {
-                    type: 'number',
-                    description: 'Maximum number of results to return',
-                },
-            },
-            required: ['query'],
-        },
+    server.tool('videos_searchVideos', 'Search for videos on YouTube', {
+        query: z.string().describe('Search query'),
+        maxResults: z.number().optional().describe('Maximum number of results to return'),
     }, async (params) => {
         try {
-            const result = await videoService.searchVideos(params);
+            const result = await videoService.searchVideos(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -95,26 +73,12 @@ export async function startMcpServer() {
         }
     });
 
-    // Register transcript tools
-    server.tool('transcripts_getTranscript', {
-        description: 'Get the transcript of a YouTube video',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                videoId: {
-                    type: 'string',
-                    description: 'The YouTube video ID',
-                },
-                language: {
-                    type: 'string',
-                    description: 'Language code for the transcript',
-                },
-            },
-            required: ['videoId'],
-        },
+    server.tool('transcripts_getTranscript', 'Get the transcript of a YouTube video', {
+        videoId: z.string().describe('The YouTube video ID'),
+        language: z.string().optional().describe('Language code for the transcript'),
     }, async (params) => {
         try {
-            const result = await transcriptService.getTranscript(params);
+            const result = await transcriptService.getTranscript(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -132,22 +96,11 @@ export async function startMcpServer() {
         }
     });
 
-    // Register channel tools
-    server.tool('channels_getChannel', {
-        description: 'Get information about a YouTube channel',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                channelId: {
-                    type: 'string',
-                    description: 'The YouTube channel ID',
-                },
-            },
-            required: ['channelId'],
-        },
+    server.tool('channels_getChannel', 'Get information about a YouTube channel', {
+        channelId: z.string().describe('The YouTube channel ID'),
     }, async (params) => {
         try {
-            const result = await channelService.getChannel(params);
+            const result = await channelService.getChannel(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -165,25 +118,12 @@ export async function startMcpServer() {
         }
     });
 
-    server.tool('channels_listVideos', {
-        description: 'Get videos from a specific channel',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                channelId: {
-                    type: 'string',
-                    description: 'The YouTube channel ID',
-                },
-                maxResults: {
-                    type: 'number',
-                    description: 'Maximum number of results to return',
-                },
-            },
-            required: ['channelId'],
-        },
+    server.tool('channels_listVideos', 'Get videos from a specific channel', {
+        channelId: z.string().describe('The YouTube channel ID'),
+        maxResults: z.number().optional().describe('Maximum number of results to return'),
     }, async (params) => {
         try {
-            const result = await channelService.listVideos(params);
+            const result = await channelService.listVideos(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -201,22 +141,11 @@ export async function startMcpServer() {
         }
     });
 
-    // Register playlist tools
-    server.tool('playlists_getPlaylist', {
-        description: 'Get information about a YouTube playlist',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                playlistId: {
-                    type: 'string',
-                    description: 'The YouTube playlist ID',
-                },
-            },
-            required: ['playlistId'],
-        },
+    server.tool('playlists_getPlaylist', 'Get information about a YouTube playlist', {
+        playlistId: z.string().describe('The YouTube playlist ID'),
     }, async (params) => {
         try {
-            const result = await playlistService.getPlaylist(params);
+            const result = await playlistService.getPlaylist(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -234,25 +163,12 @@ export async function startMcpServer() {
         }
     });
 
-    server.tool('playlists_getPlaylistItems', {
-        description: 'Get videos in a YouTube playlist',
-        inputSchema: {
-            type: 'object',
-            properties: {
-                playlistId: {
-                    type: 'string',
-                    description: 'The YouTube playlist ID',
-                },
-                maxResults: {
-                    type: 'number',
-                    description: 'Maximum number of results to return',
-                },
-            },
-            required: ['playlistId'],
-        },
+    server.tool('playlists_getPlaylistItems', 'Get videos in a YouTube playlist', {
+        playlistId: z.string().describe('The YouTube playlist ID'),
+        maxResults: z.number().optional().describe('Maximum number of results to return'),
     }, async (params) => {
         try {
-            const result = await playlistService.getPlaylistItems(params);
+            const result = await playlistService.getPlaylistItems(params as any);
             return {
                 content: [{
                     type: 'text',
@@ -269,6 +185,8 @@ export async function startMcpServer() {
             };
         }
     });
+
+
 
     // Create transport and connect
     const transport = new StdioServerTransport();
